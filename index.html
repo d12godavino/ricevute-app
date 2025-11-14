@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Generatore Ricevute Ospiti</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1>📋 Generatore Ricevute Ospiti</h1>
+        </header>
+
+        <main id="formView" class="form-view">
+            <!-- SEZIONE RICEVUTA -->
+            <div class="form-section">
+                <h2 class="section-title">📝 Informazioni Ricevuta</h2>
+                <div class="form-group">
+                    <label for="numeroRicevuta">Numero Ricevuta</label>
+                    <input type="text" id="numeroRicevuta" placeholder="Es: 0001" />
+                </div>
+                <div class="form-group">
+                    <label for="dataRicevuta">Data Ricevuta</label>
+                    <input type="date" id="dataRicevuta" />
+                </div>
+            </div>
+
+            <!-- SEZIONE PROPRIETARIO -->
+            <div class="form-section">
+                <div class="section-header-with-btn">
+                    <h2 class="section-title">👤 Dati Ricevente</h2>
+                    <button class="btn-secondary" onclick="openProprietariModal()">⚙️ Gestisci Proprietari</button>
+                </div>
+                <div class="form-group">
+                    <label for="nomeProprietario">Nome Proprietario</label>
+                    <select id="nomeProprietario" onchange="onProprietarioChange()">
+                        <option value="">-- Seleziona Proprietario --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="viaProprietario">Via e Civico</label>
+                    <input type="text" id="viaProprietario" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="capProprietario">CAP, Città, Provincia</label>
+                    <input type="text" id="capProprietario" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="cfProprietario">C.F. / P.IVA</label>
+                    <input type="text" id="cfProprietario" readonly />
+                </div>
+            </div>
+
+            <!-- SEZIONE OSPITE -->
+            <div class="form-section">
+                <h2 class="section-title">👥 Dati Cliente / Ospite</h2>
+                <div class="form-group">
+                    <label for="nomeOspite">Nome e Cognome Ospite</label>
+                    <input type="text" id="nomeOspite" placeholder="Es: Mario Rossi" />
+                </div>
+                <div class="form-group">
+                    <label for="indirizzoOspite">Indirizzo Ospite</label>
+                    <input type="text" id="indirizzoOspite" placeholder="Es: Via Roma 10" />
+                </div>
+                <div class="form-group">
+                    <label for="capOspite">CAP, Città, Provincia Ospite</label>
+                    <input type="text" id="capOspite" placeholder="Es: 00100, Roma (RM)" />
+                </div>
+                <div class="form-group">
+                    <label for="cfOspite">P.IVA / C.F. Ospite</label>
+                    <input type="text" id="cfOspite" />
+                </div>
+            </div>
+
+            <!-- SEZIONE SOGGIORNO -->
+            <div class="form-section">
+                <h2 class="section-title">🏨 Dettagli Soggiorno</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="checkIn">Data Check-in</label>
+                        <input type="date" id="checkIn" onchange="calculateNights()" />
+                    </div>
+                    <div class="form-group">
+                        <label for="checkOut">Data Check-out</label>
+                        <input type="date" id="checkOut" onchange="calculateNights()" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="numeroNotti">Numero Notti</label>
+                        <input type="number" id="numeroNotti" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="totalePernottamenti">Totale Pernottamenti (€)</label>
+                        <input type="number" id="totalePernottamenti" step="0.01" placeholder="0.00" onchange="calculateTotal()" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE COSTI AGGIUNTIVI -->
+            <div class="form-section">
+                <h2 class="section-title">💰 Costi Aggiuntivi</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="extra">Extra (€)</label>
+                        <input type="number" id="extra" value="0" step="0.01" onchange="calculateTotal()" />
+                    </div>
+                    <div class="form-group">
+                        <label for="tassaSoggiorno">Tassa di Soggiorno (€)</label>
+                        <input type="number" id="tassaSoggiorno" value="0" step="0.01" onchange="calculateTotal()" />
+                    </div>
+                    <div class="form-group">
+                        <label for="marcaBollo">Marca da Bollo (€)</label>
+                        <input type="number" id="marcaBollo" value="2.00" step="0.01" onchange="calculateTotal()" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE TOTALE -->
+            <div class="form-section highlight-section">
+                <div class="form-group">
+                    <label for="totalePagato">TOTALE PAGATO (€)</label>
+                    <input type="number" id="totalePagato" readonly class="total-field" />
+                </div>
+            </div>
+
+            <!-- PULSANTI AZIONE -->
+            <div class="form-actions">
+                <button class="btn-primary" onclick="generateReceipt()">✅ Genera Ricevuta</button>
+                <button class="btn-primary" onclick="generateAndDownloadPDF()">⬇️ Genera & Scarica PDF</button>
+                <button class="btn-secondary" onclick="resetForm()">🔄 Reset Form</button>
+            </div>
+        </main>
+
+        <!-- RECEIPT PREVIEW VIEW -->
+        <div id="receiptView" class="receipt-view hidden">
+            <div class="receipt-container" id="receiptContainer">
+                <div class="receipt-header">
+                    <h1>RICEVUTA PER OSPITI</h1>
+                </div>
+
+                <!-- NUMERO E DATA -->
+                <div class="receipt-section">
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="label">NUMERO RICEVUTA</span>
+                            <span class="value" id="rNumeroRicevuta"></span>
+                        </div>
+                        <div class="receipt-col">
+                            <span class="label">DATA RICEVUTA</span>
+                            <span class="value" id="rDataRicevuta"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RICEVENTE -->
+                <div class="receipt-section">
+                    <h3>Spettabile:</h3>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="value" id="rNomeProprietario"></span>
+                        </div>
+                        <div class="receipt-col">
+                            <span class="label">Eseguita da:</span>
+                        </div>
+                    </div>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="value" id="rViaProprietario"></span>
+                        </div>
+                    </div>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="value" id="rCapProprietario"></span>
+                        </div>
+                    </div>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="label">C.F.:</span>
+                            <span class="value" id="rCfProprietario"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OSPITE -->
+                <div class="receipt-section">
+                    <h3>Ospite:</h3>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="value" id="rNomeOspite"></span>
+                        </div>
+                    </div>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="value" id="rIndirizzoOspite"></span>
+                        </div>
+                    </div>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="value" id="rCapOspite"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DETTAGLI SOGGIORNO -->
+                <div class="receipt-section">
+                    <h3>Dettagli Soggiorno:</h3>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="label">Data Check-in:</span>
+                            <span class="value" id="rCheckIn"></span>
+                        </div>
+                        <div class="receipt-col">
+                            <span class="label">Data Check-out:</span>
+                            <span class="value" id="rCheckOut"></span>
+                        </div>
+                    </div>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="label">Numero Notti:</span>
+                            <span class="value" id="rNumeroNotti"></span>
+                        </div>
+                    </div>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="label">Totale Pernottamenti:</span>
+                            <span class="value" id="rTotalePernottamenti"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COSTI AGGIUNTIVI -->
+                <div class="receipt-section">
+                    <h3>Costi Aggiuntivi:</h3>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="label">Extra:</span>
+                            <span class="value" id="rExtra"></span>
+                        </div>
+                    </div>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="label">Tassa di Soggiorno:</span>
+                            <span class="value" id="rTassaSoggiorno"></span>
+                        </div>
+                    </div>
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="label">Marca da Bollo:</span>
+                            <span class="value" id="rMarcaBollo"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOTALE -->
+                <div class="receipt-section total-section">
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="label">TOTALE PAGATO:</span>
+                            <span class="value total-value" id="rTotalePagato"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FIRMA -->
+                <div class="receipt-section">
+                    <div class="receipt-row">
+                        <div class="receipt-col">
+                            <span class="label">Data Ricevuta</span>
+                            <div style="height: 40px;"></div>
+                        </div>
+                        <div class="receipt-col">
+                            <span class="label">Firma Ricevente</span>
+                            <div style="height: 40px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PULSANTI RECEIPT -->
+            <div class="receipt-actions">
+                <button class="btn-primary" onclick="downloadPDF()">📄 Scarica PDF</button>
+                <button class="btn-primary" onclick="window.print()">🖨️ Stampa</button>
+                <button class="btn-secondary" onclick="editReceipt()">✏️ Modifica</button>
+                <button class="btn-secondary" onclick="newReceipt()">➕ Nuova Ricevuta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PROPRIETARI -->
+    <div id="proprietariModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Gestisci Proprietari</h2>
+                <button class="modal-close" onclick="closeProprietariModal()">×</button>
+            </div>
+
+            <div class="modal-body">
+                <table class="proprietari-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Via</th>
+                            <th>CAP / Città</th>
+                            <th>C.F.</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="proprietariTableBody">
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
+                    <h3>Aggiungi Nuovo Proprietario</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" id="newProprietarioNome" placeholder="Nome Cognome" />
+                        </div>
+                        <div class="form-group">
+                            <label>Via</label>
+                            <input type="text" id="newProprietarioVia" placeholder="Via e Civico" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>CAP, Città, Provincia</label>
+                            <input type="text" id="newProprietarioCap" placeholder="Es: 48018, Faenza (RA)" />
+                        </div>
+                        <div class="form-group">
+                            <label>C.F. / P.IVA</label>
+                            <input type="text" id="newProprietarioCF" placeholder="Codice Fiscale" />
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="addProprietario()" style="margin-top: 10px;">✅ Aggiungi Proprietario</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- html2pdf (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
